@@ -14,13 +14,21 @@ def get_titles_from_search_results(filename):
 
     [('Book title 1', 'Author 1'), ('Book title 2', 'Author 2')...]
     """
-
-    page = requests.get(url)
-    if page.ok:
-        soup = BeautifulSoup(page.content, 'html.parser')
-        tags = soup.find_all('a')
-
-    return "boop"
+    with open(filename, 'r') as f:
+        contents = f.read()
+        soup = BeautifulSoup(contents, 'html.parser')
+    output = []
+    tags = soup.find_all('tr')
+    for tag in tags:
+        title = tag.find('a', class_ = "bookTitle")
+        new_title = title.text
+        new_title = new_title.strip()
+        author = tag.find('a', class_ = "authorName")
+        new_author = author.text
+        new_author = new_author.strip()
+        inp = (new_title, new_author)
+        output.append(inp)
+    return output
 
 
 def get_search_links():
@@ -145,8 +153,10 @@ class TestCases(unittest.TestCase):
             self.assertEqual(type(title), tuple)
 
         # check that the first book and author tuple is correct (open search_results.htm and find it)
+        self.assertEqual(titles[0], ('Harry Potter and the Deathly Hallows (Harry Potter, #7)', 'J.K. Rowling'))
 
         # check that the last title is correct (open search_results.htm and find it)
+        self.assertEqual(titles[19], ('Harry Potter: The Prequel (Harry Potter, #0.5)', 'J.K. Rowling'))
 
     def test_get_search_links(self):
         # check that TestCases.search_urls is a list
@@ -166,19 +176,27 @@ class TestCases(unittest.TestCase):
     def test_get_book_summary(self):
         # create a local variable – summaries – a list containing the results from get_book_summary()
         # for each URL in TestCases.search_urls (should be a list of tuples)
+        summaries = get_book_summary(TestCases.search_urls)
 
         # check that the number of book summaries is correct (10)
+        self.assertEqual(len(summaries), 10)
 
+        for summ in summaries:
             # check that each item in the list is a tuple
+            self.assertEqual(type(summ), tuple)
 
             # check that each tuple has 3 elements
+            self.assertEqual(len(summ), 3)
 
             # check that the first two elements in the tuple are string
+            self.assertEqual(type(summ[0]), str)
+            self.assertEqual(type(summ[1]), str)
 
             # check that the third element in the tuple, i.e. pages is an int
+            self.assertEqual(type(summ[2]), int)
 
             # check that the first book in the search has 337 pages
-            pass
+        self.assertEqual(summaries[0][2], 337)
 
 
     def test_summarize_best_books(self):
